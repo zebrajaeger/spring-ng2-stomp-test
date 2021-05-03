@@ -1,0 +1,9 @@
+<div id="messages">
+  <button class="btn btn-primary" (click)="onSendMessage()">
+    Send Message
+  </button>
+  <h2>Received messages</h2>
+  <ol>
+    <li class="message" *ngFor="let message of receivedMessages">{{message.time}}, {{message.from}}, {{message.text}} </li>
+  </ol>
+</div>
