@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {RxStompService} from '@stomp/ng2-stompjs';
-import {Subscription} from 'rxjs';
+import {RxStompRPCService, RxStompService} from '@stomp/ng2-stompjs';
 
 @Component({
   selector: 'app-messages',
@@ -9,29 +8,41 @@ import {Subscription} from 'rxjs';
 })
 export class MessagesComponent implements OnInit, OnDestroy {
   public receivedMessages: any[] = [];
-  private topicSubscription: Subscription;
+  private interval: any;
+  private i = 0;
+  private j = 0;
 
-  constructor(private rxStompService: RxStompService) {
+  constructor(private rxStompService: RxStompService, private rxStompRPCService: RxStompRPCService) {
   }
 
   onSendMessage(): void {
-    const message = {
-      from: 'foo',
-      text: `Message generated at ${new Date()}`
-    };
 
-    this.rxStompService.publish({destination: '/xxx', body: JSON.stringify(message)});
+    // execute rpc
+    this.rxStompRPCService
+      .rpc({destination: '/app/rpc', body: 'rpc-' + (this.j++)})
+      .subscribe(result => {
+        console.log('RPC', result.body);
+      });
   }
 
   ngOnInit(): void {
-    this.rxStompService.watch('/topic/messages').subscribe(message => {
-      const msg = JSON.parse(message.body);
-      console.log(msg);
-      this.receivedMessages.push(msg);
+
+    // receive message from server
+    this.rxStompService.watch('/topic/to-client').subscribe(message => {
+      console.log(message.body);
     });
+
+    // send message to server
+    this.interval = setInterval(() => {
+      this.rxStompService.publish({
+        destination: '/app/from-client',
+        body: 'from-client-' + (this.i++)
+      });
+    }, 10000);
   }
 
   ngOnDestroy(): void {
-    this.topicSubscription.unsubscribe();
+    clearInterval(this.interval
+    );
   }
 }

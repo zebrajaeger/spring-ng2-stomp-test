@@ -9,20 +9,22 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
-@EnableScheduling
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        //config.setApplicationDestinationPrefixes("/app");
+
+        // default naming for topics is 'topic', for user messages is 'queue'
+        config.enableSimpleBroker("/topic/", "/queue/");
+
+        // prefix for messaging. @MessageMapping("/from-client") means: we listen to "/app/from-client"
+        config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat").setAllowedOrigins("*");
-        registry.addEndpoint("/rpc-replies").setAllowedOrigins("*");
-        registry.addEndpoint("/to-client").setAllowedOrigins("*");
-        registry.addEndpoint("/from-client").setAllowedOrigins("*");
+
+        // ws/stomp listening on localhost:8080/greeting
+        registry.addEndpoint("/greeting").setAllowedOrigins("*");
     }
 }
